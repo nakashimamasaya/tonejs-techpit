@@ -1,21 +1,24 @@
 <template>
 <main class="main">
   <button
-    class="musicBtn"
-    @click="musicStart">
-    Music
-  </button>
-  <button 
     class="startBtn"
     @click="appStart"
     v-if="isStarted===false">
     Start
   </button>
   <section
-  class="touchZone"
-  v-else>
-  &nbsp;
-  </section>
+    @mousedown="ringStart"
+    @touchstart="ringStart"
+    @mouseup="ringStop"
+    @touchend="ringStop"
+    @mouseleave="ringStop"
+    @touchleave="ringStop"
+    @mousemove="ring"
+    @touchmove="ring"
+    class="touchZone"
+    id="touchZone"
+    v-else
+  >&nbsp;</section>
 </main>
 </template>
 
@@ -25,17 +28,56 @@ import * as Tone from 'tone'
 export default {
   data(){
     return {
-      isStarted: false
+      isStarted: false,
+      synth: null,
+      isRings: false
     }
   },
   methods: {
     appStart(){
-      this.isStarted = true
+      this.isStarted = true;
+      this.synth = new Tone.Synth().toDestination();
     },
+    ringStart(){
+      this.isRings = true;
+      this.ring();
+    },
+    ringStop(){
+      this.isRings = false;
+      this.ring();
+    },
+    ring(event){
+      const minVol = -36;
+      const minFreq = new Tone.Frequency("E1").toFrequency();
+      const maxFreq = new Tone.Frequency("E5").toFrequency();
+      let x = 0;
+      let y = 0
 
-    musicStart(){
-        const synth = new Tone.Synth().toDestination();
-        synth.triggerAttackRelease("C4", "8n");
+      if(typeof event !== "undefined"){
+        if(typeof event.touches !== "undefined" && event.touches.length > 0) {
+          x = - event.touches[0].clientX;
+          y = event.touches[0].clientY;
+        } else {
+          x = event.clientX;
+          y = event.clientY;
+        }
+      }
+
+      const height = document.getElementById("touchZone").clientHeight;
+      const currentVol = Math.round((y / height) * minVol);
+
+      console.log(currentVol);
+
+      this.synth.volume.value = currentVol;
+
+      const width = document.getElementById("touchZone").clientWidth;
+      const currentFreq = Math.round((x*(maxFreq - minFreq)) / width) + minFreq;
+
+      if (this.isRings) {
+        this.synth.triggerAttack(currentFreq);
+      } else {
+        this.synth.triggerRelease();
+      }
     }
   }
 }
@@ -64,8 +106,4 @@ export default {
   min-height: 100vh;
 }
 
-.startBtn,
-.musicBtn {
-    padding: 10px 20px;
-}
 </style>
