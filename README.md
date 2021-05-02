@@ -7,6 +7,9 @@
 * Tone.jsを用いてWeb Audio APIを触ってみます
 * Herokuを使ってWebアプリケーションを公開する方法を学びます
 
+# 公開ページ
+https://nakashimamasaya.github.io/tonejs-techpit/
+
 # music
 
 ## Build Setup
